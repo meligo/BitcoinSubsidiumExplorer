@@ -5,15 +5,15 @@
 */
 {
   // name your instance!
-  "title": "IQUIDUS",
+  "title": "BitcoinSubsidumExplorer",
 
-  "address": "127.0.0.1:3001",
+  "address": "127.0.0.1:8766",
 
   // coin name
-  "coin": "Darkcoin",
+  "coin": "BitcoinSubsidium",
 
   // coin symbol
-  "symbol": "DRK",
+  "symbol": "XBTX",
 
   // logo
   "logo": "/images/logo.png",
@@ -32,12 +32,12 @@
   "theme": "Cyborg",
 
   // port to listen for requests on.
-  "port" : 3001,
+  "port": 3001,
 
   // database settings (MongoDB)
   "dbsettings": {
-    "user": "iquidus",
-    "password": "3xp!0reR",
+    "user": "meligoke",
+    "password": "",
     "database": "explorerdb",
     "address": "localhost",
     "port": 27017
@@ -49,13 +49,13 @@
   "block_parallel_tasks": 1,
 
   // wallet settings
-  "use_rpc": false,
+  "use_rpc": true,
 
   "wallet": {
     "host": "localhost",
-    "port": 9332,
-    "username": "darkcoinrpc",
-    "password": "123gfjk3R3pCCVjHtbRde2s5kzdf233sa"
+    "port": 8766,
+    "username": "meligo",
+    "password": ""
   },
 
   // confirmations
@@ -66,10 +66,10 @@
 
   // menu settings
   "display": {
-    "api": true,
-    "markets": true,
+    "api": false,
+    "markets": false,
     "richlist": true,
-    "twitter": true,
+    "twitter": false,
     "facebook": false,
     "googleplus": false,
     "youtube": false,
@@ -105,10 +105,10 @@
   //supported markets: bittrex, poloniex, yobit, empoex, bleutrade, ccex
   //default market is loaded by default and determines last price in header
   "markets": {
-    "coin": "JBS",
+    "coin": "XBTX",
     "exchange": "BTC",
-    "enabled": ["bittrex"],
-    "ccex_key" : "Get-Your-Own-Key",
+    "enabled": [ "bittrex" ],
+    "ccex_key": "Get-Your-Own-Key",
     "default": "bittrex"
   },
 
@@ -166,7 +166,7 @@
 
   // nethash unitd: sets nethash API return units
   // valid options: "P" (PH/s), "T" (TH/s), "G" (GH/s), "M" (MH/s), "K" (KH/s)
-  "nethash_units": "G",
+  "nethash_units": "K",
 
   // Address labels
   // example : "JhbrvAmM7kNpwA6wD5KoAsbtikLWWMNPcM": {"label": "This is a burn address", "type":"danger", "url":"http://example.com"}
@@ -174,7 +174,7 @@
   // type (optional) = class of label, valid types: default, primary, warning, danger, success
   // url (optional) = url to link to for more information
   "labels": {
-  //  "JSoEdU717hvz8KQVq2HfcqV9A79Wihzusu": {"label": "Developers address", "type":"primary", "url":"http://example.com"},
-  //  "JSWVXHWeYNknPdG9uDrcBoZHztKMFCsndw": {"label": "Cryptsy"}
+    //  "JSoEdU717hvz8KQVq2HfcqV9A79Wihzusu": {"label": "Developers address", "type":"primary", "url":"http://example.com"},
+    //  "JSWVXHWeYNknPdG9uDrcBoZHztKMFCsndw": {"label": "Cryptsy"}
   }
 }
