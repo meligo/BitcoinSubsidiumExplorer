@@ -36,8 +36,8 @@
 
   // database settings (MongoDB)
   "dbsettings": {
-    "user": "meligoke",
-    "password": "",
+    "user": "your username",
+    "password": "your password",
     "database": "explorerdb",
     "address": "localhost",
     "port": 27017
@@ -54,8 +54,8 @@
   "wallet": {
     "host": "localhost",
     "port": 8766,
-    "username": "meligo",
-    "password": ""
+    "username": "your username",
+    "password": "your password"
   },
 
   // confirmations
@@ -75,7 +75,7 @@
     "youtube": false,
     "search": true,
     "movement": true,
-    "network": true,
+    "network": false,
     // Settings to switch navbar theme, leaving both false will use the 'primary' navbar
     "navbar_dark": false,
     "navbar_light": false

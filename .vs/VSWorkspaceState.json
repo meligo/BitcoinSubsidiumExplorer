@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\lib",
+    "\\lib\\markets",
+    "\\public\\images",
+    "\\public\\javascripts",
+    "\\public\\themes",
+    "\\public\\vendor",
+    "\\scripts",
+    "\\spec\\support",
+    "\\views\\includes"
+  ],
+  "SelectedNode": "\\lib\\database.js",
+  "PreviewInSolutionExplorer": false
+}
