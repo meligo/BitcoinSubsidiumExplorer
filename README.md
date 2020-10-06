@@ -6,7 +6,7 @@ An open source block explorer written in node.js.
 ### See it in action
 
 *  [List of live explorers running Iquidus](https://github.com/iquidus/explorer/wiki/Live-Explorers)
-
+*  most of the information comes from https://stakeandnodes.net/iquidus-explorer-installation-guide/ , but with some tweaks I found easier 
 
 *Note: If you would like your instance mentioned here contact me*
 
@@ -14,29 +14,105 @@ An open source block explorer written in node.js.
 
 *  node.js >= 8.17.0 (12.14.0 is advised for updated dependencies)
 *  mongodb 4.2.x
-*  *coind
+*  *BitcoinSubsidiumd
 
-### Create database
+
+### Preparing the server
+
+Install latest updates:
+
+    sudo apt update && sudo apt -y upgrade
+
+When all updates are installed, reboot the server
+
+    sudo reboot
+
+Install needed depencies and remove all unused packages
+
+    sudo apt -y install git htop screen unzip libkrb5-dev nginx nano gnupg && sudo apt -y autoremove --purge
+
+When it’s done, reboot the server
+
+    sudo reboot
+
+Install BitcoinSubsidium ( latest version can be retrieved from https://github.com/phoenixkonsole/xbtx )
+
+    under /root/ or /home/ do
+    mkdir xbtx
+    wget https://github.com/phoenixkonsole/xbtx/releases/download/7/XBTX_Linux_x64.zip
+    unzip XBTX_Linux_x64.zip
+
+### Running the deamon
+
+Now it's time to run the daemon, we will need to this 2 times because there is no "stop" currently on the deamon:
+
+     ( /home/ or /root/ where you have wget the zipfile) /home/xbtx/BitcoinSubsidiumd -daemon -txindex -server -listen
+
+The daemon will create a folder under /root/.BitcoinSubsidium and under this folder there might be a file BitcoinSubsidium.conf, this is a very important file!
+Use no special characters for the username and password! Only the local host have rpc access, so the username and password mustn’t be very difficult and long. 
+
+    cd /root/.BitcoinSubsidium
+    sudo nano BitcoinSubsidium.conf
+
+In this file put the information from below (note the information down because you will need it later!)
+    rpcuser=username
+    rpcpassword=password
+    server=1
+    txindex=1
+
+rpcallowip=127.0.0.1 is allowed by default from the xbtx code so this is not needed to be added and the default port is 8766, if you want to change this default rpc port do 
+
+    rpcport=coin rpc port
+
+Save the changes by doing control + X and y and then because we cannot stop start the daemon do
+
+    sudo reboot now
+
+After reboot restart the daemon again and check it on a regular basis via 
+
+    ./BitcoinSubsidium-cli getblockchaininfo 
+
+Blocks and headers will be incrementing and you can continue with the rest but best is to wait when both parameters are on the same height. 
+
+### Install & create database
+
+Install Mongodb (I have seen many alternatives here, and this one is the only one that did not gave me any issue)
+
+    sudo apt install -y mongodb
+
+    After install check the service by 
+
+    sudo systemctl status mongodb
+
 
 Enter MongoDB cli:
 
-    $ mongo
+    mongo
 
 Create databse:
 
-    > use explorerdb
+    use explorerdb
 
-Create user with read/write access:
+Create user with read/write access (note the credentials down because you need it later!):
 
-    > db.createUser( { user: "iquidus", pwd: "3xp!0reR", roles: [ "readWrite" ] } )
+    db.createUser( { user: "your username", pwd: "your password", roles: [ "readWrite" ] } )
 
 *Note: If you're using mongo shell 4.2.x, use the following to create your user:
 
-    > db.addUser( { user: "username", pwd: "password", roles: [ "readWrite"] })
+    db.addUser( { user: "username", pwd: "password", roles: [ "readWrite"] })
+    exit
+
+### Install Node.js and NPM
+
+Install nodejs and Npm via: 
+    
+    sudo apt update && sudo apt -y install build-essential nodejs npm
+
 
 ### Get the source
 
-    git clone https://github.com/iquidus/explorer explorer
+    cd /home/
+    git clone https://github.com/meligo/BitcoinSubsidiumExplorer.git explorer
 
 ### Install node modules
 
@@ -46,23 +122,104 @@ Create user with read/write access:
 
     cp ./settings.json.template ./settings.json
 
-*Make required changes in settings.json*
+Check that you have the directory “tmp” in the explorer directory. When not, create it.
+    
+    mkdir tmp
+
+### Make required changes in settings.json
+
+I did most of the settings already for you to be able to work with the BitcoinSubsidium network.
+    
+    "title": "BitcoinSubsidumExplorer",
+    "address": "127.0.0.1:3001", –> "address": "explorer.yourdomain.com",
+
+    // database settings (MongoDB)
+    "dbsettings": {
+    "user": "your DB username",
+    "password": "your DB password",
+    "database": "explorerdb",
+    "address": "localhost",
+    "port": 27017
+    },
+
+    this is already set to 35 but if it's giving issues please set it back to 1
+    "block_parallel_tasks": 1, –> Set this value to 35. It’s speeds up the sync.
+
+    "wallet": {
+    "host": "localhost",
+    "port": 8766, //or your own rpc port 
+    "username": "your username",
+    "password": "your password"
+    },
+
+You can look at the rest of the settings and change if you want :-) 
+
 
 ### Start Explorer
 
+DO NOT START FROM YOUR NORMAL CONSOLE, very sorry about the capitals but this is a long running operation and will block any future commands
+During the setup of the server you have installed screen, this will help you A LOT
+
+    screen -S explorer //this will create a virtual screen so that you can leave any long running operation open 
+    
+    it can be that you need to go back to the explorer path
+
+    cd /home/explorer/
+
     npm start
+
+    now to exit the screen do control + A , (control +) D and you are back in your normal console 
 
 *Note: mongod must be running to start the explorer*
 
 As of version 1.4.0 the explorer defaults to cluster mode, forking an instance of its process to each cpu core. This results in increased performance and stability. Load balancing gets automatically taken care of and any instances that for some reason die, will be restarted automatically. For testing/development (or if you just wish to) a single instance can be launched with
-
+    !only for development use!
     node --stack-size=10000 bin/instance
 
 To stop the cluster you can use
 
     npm stop
 
+
+### Not needed but for advanced users
+You can create indexes to speed up the database. Stop the application with "Ctrl + C"
+    
+    if you are out of screen explorer just go back into the screen with 
+
+    screen -r explorer
+    
+    mongo
+    use explorerdb
+    db.txes.createIndex({total: 1})
+    db.txes.createIndex({total: -1})
+    db.txes.createIndex({blockindex: 1})
+    db.txes.createIndex({blockindex: -1})
+    db.addresstxes.createIndex({a_id: 1, blockindex: -1})
+    exit
+
+start the application again 
+
+    npm start
+
 ### Syncing databases with the blockchain
+
+Open a second terminal session (don’t touch the first session). Now we will sync the explorer. Note: It depends on your blockchain size, this process can run hours or days!
+
+    screen -S sync
+
+    cd explorer //if you are not yet in the explorer dir
+    
+    node scripts/sync.js index update reindex
+
+if everything went well you will start to see a large list with block id's and txid's. 
+Meanwhile open web browser and check the frontend. http://explorer.yourdomain.com:3001
+
+Wait now till the sync is done, don’t close any window. When the sync terminates, you will receive an exception and you have to Google what is the problem and how to fix it. For this we have no cookbook. With a correct working standard blockchain you will receive no problems.
+
+When the chain is synced, you can sync the other components, it depends on your configuration.
+
+    node scripts/sync.js market
+    node scripts/peers.js
 
 sync.js (located in scripts/) is used for updating the local databases. This script must be called from the explorers root directory.
 
@@ -83,28 +240,162 @@ sync.js (located in scripts/) is used for updating the local databases. This scr
     * If check mode finds missing data(ignoring new data since last sync),
       index_timeout in settings.json is set too low.
 
+### making sure that the explorer keeps running
 
-*It is recommended to have this script launched via a cronjob at 1+ min intervals.*
+### Process Manager 2 
 
-**crontab**
+We will make the application reboot safe and install as service. For this we’re using the “Process Manager 2” (PM2) tool.
 
+Stop the application in your 1st terminal with "Ctrl + C" , not the syncing but the other screen -r explorer.
+
+    sudo npm install -g pm2
+    sudo pm2 start bin/cluster
+    sudo env PATH=$PATH:/usr/local/bin pm2 startup
+    sudo pm2 save && sudo systemctl daemon-reload && systemctl start pm2-root (root is what you see when you started the cluster , it's in the "user" tab)
+
+Check that the serice is up and running.
+
+    sudo systemctl status pm2-root
+
+!Important commands to stop, start, restart, monitor the explorer application!
+
+    pm2 stop
+    pm2 start
+    pm2 restart
+    pm2 monit
+
+### cron
+
+We will automate the scripts via cron
 *Example crontab; update index every minute and market data every 2 minutes*
 
-    */1 * * * * cd /path/to/explorer && /usr/bin/nodejs scripts/sync.js index update > /dev/null 2>&1
-    */2 * * * * cd /path/to/explorer && /usr/bin/nodejs scripts/sync.js market > /dev/null 2>&1
-    */5 * * * * cd /path/to/explorer && /usr/bin/nodejs scripts/peers.js > /dev/null 2>&1
+    sudo crontab -e
+    */1 * * * * cd /home/explorer && /usr/bin/nodejs scripts/sync.js index update > /dev/null 2>&1
+    */2 * * * * cd /root/explorer && /usr/bin/nodejs scripts/sync.js market > /dev/null 2>&1
+    */5 * * * * cd /root/explorer && /usr/bin/nodejs scripts/peers.js > /dev/null 2>&1
 
-### Wallet
+Adjust the first numbers to how fast it should sync the information in minutes, so now we are syncing the blockchain every minute
+*It is recommended to have this script launched via a cronjob at 1+ min intervals.*
 
-Iquidus Explorer is intended to be generic, so it can be used with any wallet following the usual standards. The wallet must be running with atleast the following flags
+### now it's time to secure this server
 
-    -daemon -txindex
+### Nginx reverse proxy for security to run the app under port 80/443
+
+We will remove the default nginx configuration and create a new one.
+
+    sudo rm /etc/nginx/sites-enabled/default
+    sudo vi /etc/nginx/sites-available/explorer
+
+Paste the config into the new file and change the server name with your URL.
+
+    server {
+        listen 80;
+        server_name explorer.yourdomain.com;
+
+        location / {
+            proxy_set_header   X-Forwarded-For $remote_addr;
+            proxy_set_header   Host $http_host;
+            proxy_pass         "http://127.0.0.1:3001";
+        }
+    }
+
+We will link our new nginx config.
+
+    sudo ln -s /etc/nginx/sites-available/explorer /etc/nginx/sites-enabled/explorer
+
+And start the nginx reverse proxy.
+
+    sudo systemctl start nginx
+
+    Check: http://explorer.yourdomain.com
+
+
+### secure with firewall 
+
+We will close all ports, except the ssh, http and https port. If you haven't started the firewall yet and are connected via SSH do the following steps, if you just activate the firewall without this first step you better have VNC to enter the server otherwise you will get kicked. 
+
+    Command ufw default allow will set default policy to allow, this will allow everything connection from any port to your server after your firewall is enabled. 
     
-### Security
+    sudo ufw default allow
 
-Ensure mongodb is not exposed to the outside world via your mongo config or a firewall to prevent outside tampering of the indexed chain data. 
+    Enable your firewall by enable command, it will start the firewall using your settings. 
 
-### Known Issues
+    sudo ufw enable
+    
+    Command ufw allow 22/tcp will allow all incoming TCP (not UDP)  connections to port 22 used for SSH. 
+    sudo ufw allow 22/tcp // if you have another port for SSH use that one 
+    
+    or if you really want to be secure 
+    ufw limit 22/tcp comment "Limit SSH "
+    ufw allow 22/tcp comment "SSH"
+    
+
+    Command ufw default deny will change the default policy, so all incoming connections will be denied / rejected unless defined in firewall otherwise. This is opposite of the first command, it is a much safer choice to leave only used ports open to avoid security breach. 
+    sudo ufw default deny
+
+    now to open the other ports 
+
+    ufw allow http comment "HTTP"
+    ufw allow https comment "HTTPS"
+
+
+### Create a https certificate with Let’s Encrypt
+
+Here an example to create a https certificate with Let’s Encrypt to have a secure browser session.
+Add the certbot package repo. Press Enter to accept the key.
+
+    sudo add-apt-repository ppa:certbot/certbot
+    sudo apt install python-certbot-nginx
+
+
+Obtaining an SSL Certificate. Replace the URL with yours.
+
+    sudo certbot --nginx -d explorer.yourdomain.com -d www.explorer.yourdomain.com
+
+
+If that’s successful, certbot will ask how you’d like to configure your HTTPS settings. Choose here the option “2”.
+
+    Output
+    Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
+    -------------------------------------------------------------------------------
+    1: No redirect - Make no further changes to the webserver configuration.
+    2: Redirect - Make all requests redirect to secure HTTPS access. Choose this for
+    new sites, or if you're confident your site works on HTTPS. You can undo this
+    change by editing your web server's configuration.
+    -------------------------------------------------------------------------------
+    Select the appropriate number [1-2] then [enter] (press 'c' to cancel):
+    -------------------------
+
+Verifying Certbot Auto-Renewal
+
+    sudo certbot renew --dry-run
+
+Now you have a running explorer with https security. We need to close the http port in the firewall, because we only want to accept http traffic.
+
+    sudo ufw status numbered
+    sudo ufw delete number from your http rule (IP v4 and IP v6 you have to delete)
+
+Finally you can configure the design and the correct API links. Switch trough the templates and choose what you like, replace the logo and the favicon.
+
+To set the API links correct, choose a block and fill the settings.conf with the relevant values from your chain.
+
+Create in /public a file “robots.txt” to prevent that the web crawlers index the explorer into public search engines.
+
+    sudo nano robots.txt
+    
+    User-agent: *
+    Disallow: /address
+    Disallow: /api
+    Disallow: /transaction
+
+
+### if you have issues that the JS is not kept running 
+
+    Install Forever to keep the js running
+    # sudo npm install forever -g
+    # sudo npm install forever-monitor
+
+### Troubleshooting - Known Issues
 
 **script is already running.**
 
@@ -130,160 +421,6 @@ To run sync.js with a larger stack size launch with
 Where [SIZE] is an integer higher than the default.
 
 *note: SIZE will depend on which blockchain you are using, you may need to play around a bit to find an optimal setting*
-
-Found this guide https://gist.github.com/zeronug/5c66207c426a1d4d5c73cc872255c572 it's pretty good
-
-    Node / Iquidus Explorer Setup for Dummies
-    Pulse Crypto is used in this example.
-
-    This Tutorial is going to create a Daemon (node) and install Explorer.
-    THIS IS NOT GOING TO CREATE A GUI CLIENT.
-
-    Follow the instructions in [whatever coin name] docs folder Unix build - some builds are different.
-
-    I setup this up on both Ubuntu 15.10 and 16.04 with no issues.
-    You can create an account on vultr and get $50 free to be used in 2 months.
-    Non-refferal link:  https://www.vultr.com/freetrial/
-
-    ******************************************
-    *** Change Password / Update System
-    ******************************************
-
-    Change passwords
-    # sudo passwd  //change root password
-
-    Update Packages
-    # sudo apt-get update
-    # sudo apt-get upgrade -y
-
-    Install git and nano
-    # sudo apt-get install nano git -y
-
-    ******************************************
-    *** Installing Pulse Node
-    ******************************************
-
-    Get the Source Code
-
-    Basic packages to build the coin
-    # sudo apt-get install build-essential libssl-dev libdb++-dev libboost-all-dev libqrencode-dev miniupnpc libminiupnpc-dev autoconf pkg-config libtool autotools-dev libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev automake -y
-
-    Create a Swap File - Low Ram Servers
-    # sudo fallocate -l 4G /swapfile
-    # sudo chmod 600 /swapfile
-    # sudo mkswap /swapfile
-    # sudo swapon /swapfile
-    # sudo nano /etc/fstab
-
-    Add to fstab file
-    /swapfile   none    swap    sw    0   0
-
-    Adding the Coin
-    # sudo git clone https://github.com/elcrypto/Pulse.git
-
-    Change Directories to src/
-    # cd Pulse/src/ 
-
-    Compile the code with flags
-    # sudo make -f makefile.unix USE_UPNP=1
-    # sudo strip pulsed
-
-    Stat the file with daemon flag so that you can create a config file
-    # sudo ./pulsed -daemon
-
-    Create a conf file in .pulse/pulse.conf
-    # cd
-    # sudo nano .pulse/pulse.conf
-
-    rpcuser=pulserpc
-    rpcpassword=Gnfh67gdmRTGvA5YB3UZhV6e6cPTTeneTTdnosLLD3cU
-    listen=1
-    maxconnections=500
-
-    *make sure to set the file to read only.
-    # sudo chmod 400 .pulse/pulse.conf
-    # cd Pulse/src
-    # sudo ./pulsed -daemon -txindex
-
-    Check it daemon has started.  If it returns information, the daemon is working!
-    # sudo ./pulsed getinfo
-
-    Stopping the daemon
-    # sudo ./pulsed stop
-
-    ******************************************
-    *** Setting up the Explorer
-    *** https://github.com/iquidus/explorer
-    ******************************************
-
-    Install MongoDB Community Edition
-    https://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
-
-    # sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
-    # echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
-    # sudo apt-get update
-    # sudo apt-get install -y mongodb-org
-
-    # Reboot your system
-    # sudo reboot
-    # sudo service mongod start
-
-    Running MongoDB - reference
-    # sudo service mongod start
-    # sudo service mongod stop
-    # sudo service mongod restart
-
-    Installing Nodejs
-    # sudo apt-get update
-    # sudo apt-get install nodejs nodejs-legacy -y
-    # sudo apt-get install npm -y
-
-    Creating a MongoDB Database
-    # sudo mongo
-    > use explorerdb
-    > db.createUser( { user: "3er22wee3", pwd: "4y2#1iuu34hbbw2", roles: [ "readWrite" ] } )
-    > exit
-
-    Installing the Explorer
-    # cd /home/
-    # git clone https://github.com/iquidus/explorer explorer
-    # cd explorer && npm install --production
-    # cp ./settings.json.template ./settings.json
-
-    Modify the Settings File
-    # sudo nano settings.json
-
-    See if it's working
-    # npm start
-
-    Update the databases
-    # sudo node scripts/sync.js index update 
-
-    Install Forever to keep the js running
-    # sudo npm install forever -g
-    # sudo npm install forever-monitor
-
-    Start the Explorer
-    # forever start bin/cluster
-
-    ******************************************
-    *** Installing Cron
-    *** https://help.ubuntu.com/community/CronHowto
-    ******************************************
-
-    # sudo apt-get install gnome-schedule -y
-
-    Editing Cron
-    # sudo crontab -e
-
-    Add Cron to File to update the explorer
-    */1 * * * * cd /path/to/explorer && /usr/bin/nodejs scripts/sync.js index update > /dev/null 2>&1
-
-    Add Cron to make sure the Pulsed runs (NOT WORKING)
-    If anyone has a good reboot for this, please post in the comments.
-    @reboot cd /root/Pulse/src ./pulsed -daemon -txindex
-    @reboot cd /root/explorer forever start bin/cluster e
-
 
 ### License
 

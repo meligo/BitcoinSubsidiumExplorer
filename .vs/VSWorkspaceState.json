@@ -3,14 +3,9 @@
     "",
     "\\lib",
     "\\lib\\markets",
-    "\\public\\images",
-    "\\public\\javascripts",
-    "\\public\\themes",
-    "\\public\\vendor",
-    "\\scripts",
-    "\\spec\\support",
-    "\\views\\includes"
+    "\\public",
+    "\\scripts"
   ],
-  "SelectedNode": "\\lib\\database.js",
+  "SelectedNode": "\\lib\\markets\\Birake.js",
   "PreviewInSolutionExplorer": false
 }
