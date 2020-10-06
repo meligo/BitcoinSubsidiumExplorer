@@ -425,7 +425,7 @@ Where [SIZE] is an integer higher than the default.
 * clean the mongoDB *
 You can drop the mongo db with the following commands. It’s required it the db is corrupt.
 
-    mongo  
+    mongo
     use explorerdb
     db.addresses.remove({})
     db.addresses.drop()
