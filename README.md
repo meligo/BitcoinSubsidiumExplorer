@@ -29,7 +29,7 @@ When all updates are installed, reboot the server
 
 Install needed depencies and remove all unused packages
 
-    sudo apt -y install git htop screen unzip libkrb5-dev nginx nano gnupg && sudo apt -y autoremove --purge
+    sudo apt -y install git htop screen unzip libkrb5-dev nginx nano gnupg software-properties-common && sudo apt -y autoremove --purge
 
 When it’s done, reboot the server
 
@@ -182,7 +182,7 @@ To stop the cluster you can use
 
 
 ### Not needed but for advanced users
-You can create indexes to speed up the database. Stop the application with "Ctrl + C"
+You can create indexes to speed up the database. Stop the application with "Ctrl + C" , normally this is already done automagically
     
     if you are out of screen explorer just go back into the screen with 
 
@@ -282,9 +282,9 @@ Adjust the first numbers to how fast it should sync the information in minutes, 
 ### Nginx reverse proxy for security to run the app under port 80/443
 
 We will remove the default nginx configuration and create a new one.
-
+    sudo apt-get install nginx
     sudo rm /etc/nginx/sites-enabled/default
-    sudo vi /etc/nginx/sites-available/explorer
+    sudo nano /etc/nginx/sites-available/explorer
 
 Paste the config into the new file and change the server name with your URL.
 
@@ -350,7 +350,7 @@ Add the certbot package repo. Press Enter to accept the key.
 
 Obtaining an SSL Certificate. Replace the URL with yours.
 
-    sudo certbot --nginx -d explorer.yourdomain.com -d www.explorer.yourdomain.com
+    sudo certbot --nginx -d explorer.yourdomain.com
 
 
 If that’s successful, certbot will ask how you’d like to configure your HTTPS settings. Choose here the option “2”.
@@ -387,6 +387,9 @@ Create in /public a file “robots.txt” to prevent that the web crawlers index the
     Disallow: /address
     Disallow: /api
     Disallow: /transaction
+
+
+When you reboot, make very very sure your BitcoinSubsidiumD daemon is up and running, else you will not see anything happening on explorer.yourdomain.com.
 
 
 ### if you have issues that the JS is not kept running 

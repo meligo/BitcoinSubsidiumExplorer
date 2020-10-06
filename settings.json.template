@@ -129,7 +129,7 @@
   },
 
   // twitter, facebook, googleplus, youtube
-  "twitter": "iquidus",
+  "twitter": "PaparaPascal",
   "facebook": "yourfacebookpage",
   "googleplus": "yourgooglepluspage",
   "youtube": "youryoutubechannel",
@@ -174,7 +174,10 @@
   // type (optional) = class of label, valid types: default, primary, warning, danger, success
   // url (optional) = url to link to for more information
   "labels": {
-    "RMnsAx22bXknjLEtLz1EpcBniW6CBjb8PT": {"label": "Developers address", "type":"primary"},
+    "RMnsAx22bXknjLEtLz1EpcBniW6CBjb8PT": {
+      "label": "Developers address",
+      "type": "primary"
+    }
     //  "JSWVXHWeYNknPdG9uDrcBoZHztKMFCsndw": {"label": "Cryptsy"}
   }
 }
