@@ -422,7 +422,8 @@ Where [SIZE] is an integer higher than the default.
 
 *note: SIZE will depend on which blockchain you are using, you may need to play around a bit to find an optimal setting*
 
-* clean the mongoDB *
+**clean the mongoDB**
+
 You can drop the mongo db with the following commands. It’s required it the db is corrupt.
 
     mongo
