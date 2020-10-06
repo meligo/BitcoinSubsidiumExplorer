@@ -422,6 +422,25 @@ Where [SIZE] is an integer higher than the default.
 
 *note: SIZE will depend on which blockchain you are using, you may need to play around a bit to find an optimal setting*
 
+* clean the mongoDB *
+You can drop the mongo db with the following commands. It’s required it the db is corrupt.
+
+    mongo  
+    use explorerdb
+    db.addresses.remove({})
+    db.addresses.drop()
+    db.coinstats.remove({})
+    db.coinstats.drop()
+    db.markets.remove({})
+    db.markets.drop()
+    db.peers.remove({})
+    db.peers.drop()
+    db.richlists.remove({})
+    db.richlists.drop()
+    db.txes.remove({})
+    db.txes.drop()
+    exit
+
 ### License
 
 Copyright (c) 2015, Iquidus Technology  
